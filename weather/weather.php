@@ -77,7 +77,7 @@ class Weather_Informer {
 
         $result = array();
 
-        $file = file_get_contents('https://api.worldweatheronline.com/premium/v1/weather.ashx?q=' . ctl_sanitize_title( $atts['city'] ) . '&tp=3&date=' . date('Y-m-d') . '&showlocaltime&lang=ru&format=json&key=8e0ba9130d5b46aeb74151245181708');
+        $file = file_get_contents('https://api.worldweatheronline.com/premium/v1/weather.ashx?q=' . custom_sanitize_title( $atts['city'] ) . '&tp=3&date=' . date('Y-m-d') . '&showlocaltime&lang=ru&format=json&key=8e0ba9130d5b46aeb74151245181708');
         $info = json_decode($file, true);
 
         $info['data']['current_condition'][0]['mode'] = 'current';
@@ -85,7 +85,7 @@ class Weather_Informer {
         $result['today']['statistic'] = Weather_Informer::get_usage_data($info['data']['weather'][0]);
 
 
-        $file = file_get_contents('https://api.worldweatheronline.com/premium/v1/past-weather.ashx?q=' . ctl_sanitize_title( $atts['city'] ) . '&tp=3&date=' . date('Y-m-d', strtotime('-11 days')) . '&enddate=' . date('Y-m-d', strtotime('-1 days')) . '&showlocaltime&lang=ru&format=json&key=8e0ba9130d5b46aeb74151245181708');
+        $file = file_get_contents('https://api.worldweatheronline.com/premium/v1/past-weather.ashx?q=' . custom_sanitize_title( $atts['city'] ) . '&tp=3&date=' . date('Y-m-d', strtotime('-11 days')) . '&enddate=' . date('Y-m-d', strtotime('-1 days')) . '&showlocaltime&lang=ru&format=json&key=8e0ba9130d5b46aeb74151245181708');
         $info = json_decode($file, true);
 
         $info['data']['weather'] = array_reverse($info['data']['weather']);
@@ -235,7 +235,7 @@ Weather_Informer::init();
 
 
 
-function ctl_sanitize_title($title) {
+function custom_sanitize_title($title) {
     global $wpdb;
 
     $iso9_table = array(
