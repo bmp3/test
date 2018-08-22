@@ -77,16 +77,27 @@ class Weather_Informer {
 
         $result = array();
 
-        $file = file_get_contents('https://api.worldweatheronline.com/premium/v1/weather.ashx?q=' . custom_sanitize_title( $atts['city'] ) . '&tp=3&date=' . date('Y-m-d') . '&showlocaltime&lang=ru&format=json&key=8e0ba9130d5b46aeb74151245181708');
-        $info = json_decode($file, true);
+        $i = 0;
+        $r1 = $r2 = false;
+        while ( !$r1 || !$r2 ) {
+            $r1 = $r2 = false;
+            $r1 = file_get_contents('https://api.worldweatheronline.com/premium/v1/weather.ashx?q=' . custom_sanitize_title($atts['city']) . '&tp=3&date=' . date('Y-m-d') . '&showlocaltime&lang=ru&format=json&key=8e0ba9130d5b46aeb74151245181708');
+            $r2 = file_get_contents('https://api.worldweatheronline.com/premium/v1/past-weather.ashx?q=' . custom_sanitize_title($atts['city']) . '&tp=3&date=' . date('Y-m-d', strtotime('-11 days')) . '&enddate=' . date('Y-m-d', strtotime('-1 days')) . '&showlocaltime&lang=ru&format=json&key=8e0ba9130d5b46aeb74151245181708');
+            if ( !$r1 || !$r2 ) {
+                sleep(2);
+            }
+            if ( $i > 2 ) return false;
+            $i++;
+        }
+
+        $info = json_decode( $r1, true );
 
         $info['data']['current_condition'][0]['mode'] = 'current';
         $result['today']['current'] = Weather_Informer::get_usage_data($info['data']['current_condition'][0]);
         $result['today']['statistic'] = Weather_Informer::get_usage_data($info['data']['weather'][0]);
 
 
-        $file = file_get_contents('https://api.worldweatheronline.com/premium/v1/past-weather.ashx?q=' . custom_sanitize_title( $atts['city'] ) . '&tp=3&date=' . date('Y-m-d', strtotime('-11 days')) . '&enddate=' . date('Y-m-d', strtotime('-1 days')) . '&showlocaltime&lang=ru&format=json&key=8e0ba9130d5b46aeb74151245181708');
-        $info = json_decode($file, true);
+        $info = json_decode($r2, true);
 
         $info['data']['weather'] = array_reverse($info['data']['weather']);
         foreach ($info['data']['weather'] as $i => $set) {
@@ -99,7 +110,7 @@ class Weather_Informer {
     }
 
 
-    static function get_single_weather_block($data)
+    static function get_single_weather_block( $data )
     {
 
         if ( is_array( $data ) ) {
@@ -121,6 +132,11 @@ class Weather_Informer {
 
     static function weather_statistic( $data, $city )
     {
+
+        if ( !$data ) {
+            $out =
+                '<div class="wt-box">' . __( 'http://worldweatheronline.com is not answering, please try later', 'weater' ) . '</div>';
+        }
 
         $out = '<div class="wt-box">';
         $out .=
